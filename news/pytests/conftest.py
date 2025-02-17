@@ -94,17 +94,19 @@ def comment_form_data(single_news):
 
 @pytest.fixture
 def news_detail_url(single_news):
-    """Fixture to generate the detail URL for a single news item."""
     return reverse('news:detail', args=(single_news.id,))
 
 
 @pytest.fixture
 def comment_delete_url(comment):
-    """Fixture to generate the delete URL for a comment."""
     return reverse('news:delete', args=(comment.id,))
 
 
 @pytest.fixture
 def comment_edit_url(comment):
-    """Fixture to generate the edit URL for a comment."""
     return reverse('news:edit', args=(comment.id,))
+
+
+@pytest.fixture
+def home_page_url():
+    return reverse('news:home')

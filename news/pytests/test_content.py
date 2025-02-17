@@ -5,19 +5,16 @@ from django.urls import reverse
 from news.forms import CommentForm
 
 
-HOME_URL = reverse('news:home')
-
-
 @pytest.mark.django_db
-def test_news_count(author_client, bulk_news):
-    response = author_client.get(HOME_URL)
+def test_news_count(author_client, bulk_news, home_page_url):
+    response = author_client.get(home_page_url)
     news_list = response.context['object_list']
     assert news_list.count() == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
 @pytest.mark.django_db
-def test_news_order(author_client, bulk_news):
-    response = author_client.get(HOME_URL)
+def test_news_order(author_client, bulk_news, home_page_url):
+    response = author_client.get(home_page_url)
     news_list = response.context['object_list']
     all_dates = [news.date for news in news_list]
     sorted_dates = sorted(all_dates, reverse=True)
