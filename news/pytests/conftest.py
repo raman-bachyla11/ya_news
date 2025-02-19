@@ -1,10 +1,12 @@
-from django.urls import reverse
+from datetime import datetime, timedelta
+
 import pytest
 from django.conf import settings
 from django.test.client import Client
-from news.models import Comment, News
-from datetime import datetime, timedelta
+from django.urls import reverse
 from django.utils import timezone
+
+from news.models import Comment, News
 
 
 @pytest.fixture
@@ -33,63 +35,46 @@ def not_author_client(not_author):
 
 @pytest.fixture
 def single_news():
-    single_news = News.objects.create(
-        title='Заголовок',
-        text='Текст'
-    )
-    return single_news
+    return News.objects.create(title='Заголовок', text='Текст')
 
 
 @pytest.fixture
 def bulk_news():
     today = datetime.today()
-    bulk_news = News.objects.bulk_create(
+    return News.objects.bulk_create(
         News(
             title=f'Новость {index}',
             text='Просто текст.',
-            date=today - timedelta(days=index)
+            date=today - timedelta(days=index),
         )
         for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
     )
-    return bulk_news
-
-
-@pytest.fixture
-def news_id(single_news):
-    return (single_news.id,)
 
 
 @pytest.fixture
 def comment(single_news, author):
-    comment = Comment.objects.create(
+    return Comment.objects.create(
         news=single_news,
         author=author,
         text='Comment test'
     )
-    return comment
 
 
 @pytest.fixture
 def bulk_comments(single_news, author):
     now = timezone.now()
-    bulk_comments = Comment.objects.bulk_create(
-        Comment(
+    comments = []
+    for index in range(10):
+        comment = Comment.objects.create(
             news=single_news,
             author=author,
-            text=f'Tекст комментария{index}',
+            text=f'Текст комментария{index}'
+        )
+        Comment.objects.filter(pk=comment.pk).update(
             created=now + timedelta(days=index)
         )
-        for index in range(10)
-    )
-    return bulk_comments
-
-
-@pytest.fixture
-def comment_form_data(single_news):
-    return {
-        'news': single_news,
-        'text': 'Updated comment'
-    }
+        comments.append(comment)
+    return comments
 
 
 @pytest.fixture
@@ -110,3 +95,38 @@ def comment_edit_url(comment):
 @pytest.fixture
 def home_page_url():
     return reverse('news:home')
+
+
+@pytest.fixture
+def login_page_url():
+    return reverse('users:login')
+
+
+@pytest.fixture
+def logout_page_url():
+    return reverse('users:logout')
+
+
+@pytest.fixture
+def signup_page_url():
+    return reverse('users:signup')
+
+
+@pytest.fixture
+def login_to_news_detail_url(login_page_url, news_detail_url):
+    return f'{login_page_url}?next={news_detail_url}'
+
+
+@pytest.fixture
+def single_news_comment_url(news_detail_url):
+    return f'{news_detail_url}#comments'
+
+
+@pytest.fixture
+def login_to_comment_edit_url(login_page_url, comment_edit_url):
+    return f'{login_page_url}?next={comment_edit_url}'
+
+
+@pytest.fixture
+def login_to_comment_delete_url(login_page_url, comment_delete_url):
+    return f'{login_page_url}?next={comment_delete_url}'

@@ -1,43 +1,38 @@
 import pytest
 from django.conf import settings
-from django.urls import reverse
 
 from news.forms import CommentForm
 
 
-@pytest.mark.django_db
+pytestmark = pytest.mark.django_db
+
+
 def test_news_count(author_client, bulk_news, home_page_url):
-    response = author_client.get(home_page_url)
-    news_list = response.context['object_list']
-    assert news_list.count() == settings.NEWS_COUNT_ON_HOME_PAGE
+    assert author_client.get(
+        home_page_url
+    ).context['object_list'].count() == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
-@pytest.mark.django_db
 def test_news_order(author_client, bulk_news, home_page_url):
-    response = author_client.get(home_page_url)
-    news_list = response.context['object_list']
+    news_list = author_client.get(home_page_url).context['object_list']
     all_dates = [news.date for news in news_list]
-    sorted_dates = sorted(all_dates, reverse=True)
-    assert all_dates == sorted_dates
+    assert all_dates == sorted(all_dates, reverse=True)
 
 
-@pytest.mark.django_db
-def test_comment_order(bulk_comments):
-    all_timestamps = [comment.created for comment in bulk_comments]
-    sorted_timestamps = sorted(all_timestamps)
-    assert all_timestamps == sorted_timestamps
+def test_comment_order(bulk_comments, news_detail_url, author_client):
+    comments = list(
+        author_client.get(news_detail_url).context['object'].comment_set.all()
+    )
+    all_timestamps = [comment.created for comment in comments]
+    assert all_timestamps == sorted(all_timestamps)
 
 
-@pytest.mark.django_db
-def test_authorized_client_has_form(author_client, news_id):
-    url = reverse('news:detail', args=news_id)
-    response = author_client.get(url)
-    assert ('form' in response.context) is True
-    assert isinstance(response.context['form'], CommentForm)
+def test_authorized_client_has_form(author_client, news_detail_url):
+    assert 'form' in author_client.get(news_detail_url).context
+    assert isinstance(
+        author_client.get(news_detail_url).context['form'], CommentForm
+    )
 
 
-@pytest.mark.django_db
-def test_unauthorized_client_hasnt_form(client, news_id):
-    url = reverse('news:detail', args=news_id)
-    response = client.get(url)
-    assert ('form' in response.context) is False
+def test_unauthorized_client_hasnt_form(client, news_detail_url):
+    assert 'form' not in client.get(news_detail_url).context
