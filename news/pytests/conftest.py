@@ -63,18 +63,17 @@ def comment(single_news, author):
 @pytest.fixture
 def bulk_comments(single_news, author):
     now = timezone.now()
-
-    def create_and_update_comment(index):
-        comment = Comment.objects.create(
+    comments = [
+        Comment.objects.create(
             news=single_news,
             author=author,
             text=f'Текст комментария{index}'
-        )
-        Comment.objects.filter(
-            pk=comment.pk).update(created=now + timedelta(days=index))
-        return comment
-
-    return [create_and_update_comment(index) for index in range(10)]
+        ) for index in range(10)
+    ]
+    for index, comment in enumerate(comments):
+        comment.created = now + timedelta(days=index)
+        comment.save(update_fields=['created'])
+    return comments
 
 
 @pytest.fixture

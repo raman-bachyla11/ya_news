@@ -28,9 +28,9 @@ def test_comment_order(bulk_comments, news_detail_url, author_client):
 
 
 def test_authorized_client_has_form(author_client, news_detail_url):
-    assert isinstance(
-        author_client.get(news_detail_url).context['form'], CommentForm
-    )
+    response = author_client.get(news_detail_url)
+    assert 'form' in response.context
+    assert isinstance(response.context['form'], CommentForm)
 
 
 def test_unauthorized_client_hasnt_form(client, news_detail_url):
