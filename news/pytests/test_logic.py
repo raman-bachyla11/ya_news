@@ -57,16 +57,10 @@ def test_user_cant_use_bad_words(author_client, news_detail_url, data):
 
 def test_non_author_cannot_delete_comment(
         not_author_client, comment_delete_url):
-    comments_before = list(
-        Comment.objects.order_by('id').values_list(
-            'id', 'author_id', 'news_id', 'text')
-    )
+    comments_before = list(Comment.objects.order_by('id'))
     assert not_author_client.delete(
         comment_delete_url).status_code == HTTPStatus.NOT_FOUND
-    comments_after = list(
-        Comment.objects.order_by('id').values_list(
-            'id', 'author_id', 'news_id', 'text')
-    )
+    comments_after = list(Comment.objects.order_by('id'))
     assert comments_before == comments_after
 
 
@@ -88,16 +82,10 @@ def test_author_can_edit_comment(author_client, comment, comment_edit_url):
 
 
 def test_non_author_cannot_edit_comment(not_author_client, comment_edit_url):
-    comments_before = list(
-        Comment.objects.order_by('id').values_list(
-            'id', 'author_id', 'news_id', 'text')
-    )
+    comments_before = list(Comment.objects.order_by('id'))
     assert not_author_client.post(
         comment_edit_url,
         data=COMMENT_FORM_DATA
     ).status_code == HTTPStatus.NOT_FOUND
-    comments_after = list(
-        Comment.objects.order_by('id').values_list(
-            'id', 'author_id', 'news_id', 'text')
-    )
+    comments_after = list(Comment.objects.order_by('id'))
     assert comments_before == comments_after
